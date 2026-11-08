@@ -223,7 +223,8 @@ Use `list` and `status` to check what the API sees.
 | File shows `failed` | The format or content could not be indexed. Try the file as Markdown or plain text. |
 | Timed out waiting | Indexing is slow. Run `status <vs_id>` again later. |
 | API returns 404 "File search is disabled" | `Foundry:FileSearch:Enabled` is not `true` in the settings the API loaded (it must be running in the Development environment for `appsettings.Development.json` to apply). |
-| API returns 502 on a file-search request | `VectorStoreIds` is empty or an entry is not of the form `vs_...`, or the store ID does not exist in this resource. The API log has the detail. |
+| API fails to start with an options validation error | File search is enabled but `VectorStoreIds` is empty or an entry is not of the form `vs_...`. Fix the settings. |
+| API returns 502 on a file-search request | The ID is well-formed but the store does not exist in this resource (the service answered 404), or the model call failed. The API log has the detail. |
 
 ---
 
