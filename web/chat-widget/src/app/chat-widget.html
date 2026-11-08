@@ -1,0 +1,97 @@
+@if (!open()) {
+  <button class="launcher" type="button" aria-label="Open the MoMo Developer Assistant" (click)="open.set(true)">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
+    </svg>
+  </button>
+} @else {
+  <section class="panel" role="dialog" aria-label="MoMo Developer Assistant">
+    <header>
+      <span class="avatar" aria-hidden="true">AI</span>
+      <strong>MoMo Developer Assistant</strong>
+      <span class="beta">Beta</span>
+      <span class="spacer"></span>
+      <button class="new" type="button" (click)="newConversation()" [disabled]="messages().length === 0">New chat</button>
+      <button class="icon-btn" type="button" aria-label="Minimize" (click)="open.set(false)">&minus;</button>
+      <button class="icon-btn" type="button" aria-label="Close and clear the conversation" (click)="close()">&times;</button>
+    </header>
+
+    <div class="messages" #list aria-live="polite">
+      <div class="bubble bot">Hi! I can help you integrate with MoMo APIs.</div>
+
+      @if (messages().length === 0) {
+        <p class="chips-title">You can ask me about:</p>
+        @for (s of suggestions; track s) {
+          <button class="chip" type="button" (click)="send(s)">{{ s }}</button>
+        }
+      }
+
+      @for (m of messages(); track $index) {
+        <div class="bubble" [class.me]="m.role === 'user'" [class.bot]="m.role === 'assistant'">
+          @if (m.text) {
+            {{ m.text }}
+          } @else {
+            <span class="typing" aria-label="The assistant is typing"><i></i><i></i><i></i></span>
+          }
+
+          @if (m.sources?.length) {
+            <div class="sources">
+              <div class="sources-title">Sources</div>
+              <ol>
+                @for (s of m.sources; track s.url) {
+                  <li>
+                    <a [href]="s.url" target="_blank" rel="noopener noreferrer" [title]="s.url">{{ s.title }}</a>
+                    <span class="host">{{ s.host }}</span>
+                  </li>
+                }
+              </ol>
+            </div>
+          }
+
+          @if (m.documents?.length) {
+            <div class="sources">
+              <div class="sources-title">Documents</div>
+              <ul>
+                @for (d of m.documents; track d.fileName) {
+                  <li>{{ d.fileName }}</li>
+                }
+              </ul>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    @if (error(); as message) {
+      <div class="error" role="alert">{{ message }}</div>
+    }
+
+    <label class="web-toggle" [title]="'Lets the assistant search the public web. Your question may be sent to a public search service. Uses more tokens.'">
+      <input type="checkbox" [checked]="webSearch()" (change)="toggleWebSearch($event)" [disabled]="busy()" />
+      <span>Search the web</span>
+    </label>
+    <label class="web-toggle file-toggle" [title]="'Lets the assistant search the indexed documents. Uses more tokens. Turns off web search.'">
+      <input type="checkbox" [checked]="fileSearch()" (change)="toggleFileSearch($event)" [disabled]="busy()" />
+      <span>Search my documents</span>
+    </label>
+
+    <form (submit)="$event.preventDefault(); send()">
+      <input
+        type="text"
+        name="message"
+        placeholder="Ask a question about MoMo APIs..."
+        maxlength="4000"
+        autocomplete="off"
+        [value]="draft()"
+        (input)="onInput($event)"
+        [disabled]="busy()"
+        aria-label="Your question"
+      />
+      <button class="send" type="submit" aria-label="Send" [disabled]="busy() || !draft().trim()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+          <path d="M2 21l21-9L2 3v7l15 2-15 2z" />
+        </svg>
+      </button>
+    </form>
+  </section>
+}

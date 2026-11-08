@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>MoMo Developer Assistant - widget host page</title>
+  <base href="/">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <style>
+    /* Stand-in for the developer portal. The widget is isolated from this page's CSS. */
+    body { margin: 0; font-family: Arial, sans-serif; background: #f5f7fa; color: #333; }
+    nav { background: #0b4a72; color: #fff; padding: 18px 24px; font-weight: 600; }
+    main { max-width: 800px; margin: 40px auto; padding: 0 24px; }
+  </style>
+</head>
+<body>
+  <nav>Developer Portal (local host page)</nav>
+  <main>
+    <h1>Discover products you can build with our API</h1>
+    <p>The chat widget is the launcher in the bottom-right corner.</p>
+  </main>
+
+  <!-- api-base-url is empty locally: requests go to this origin and the dev server proxies /api to the .NET API. -->
+  <momo-chat-widget></momo-chat-widget>
+</body>
+</html>

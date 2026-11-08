@@ -1,0 +1,117 @@
+:host {
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  font-size: 14px;
+  color: #1f2937;
+}
+* { box-sizing: border-box; }
+button { font: inherit; cursor: pointer; }
+button:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.launcher {
+  position: fixed; right: 24px; bottom: 24px; z-index: 2147483000;
+  width: 60px; height: 60px; border-radius: 50%;
+  display: grid; place-items: center;
+  background: #0b4a72; color: #fff; border: 3px solid #ffc82e;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+}
+
+.panel {
+  position: fixed; right: 24px; bottom: 24px; z-index: 2147483000;
+  width: 380px; height: min(640px, calc(100vh - 48px));
+  display: flex; flex-direction: column; overflow: hidden;
+  background: #fff; border: 2px solid #ffc82e; border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.28);
+}
+
+header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 12px; background: #0b4a72; color: #fff;
+}
+.avatar {
+  width: 32px; height: 32px; border-radius: 50%; flex: none;
+  display: grid; place-items: center;
+  background: #ffc82e; color: #0b4a72; font-weight: 700; font-size: 12px;
+}
+.beta {
+  background: #c9f2c7; color: #14532d; font-size: 11px; font-weight: 600;
+  border-radius: 6px; padding: 1px 7px;
+}
+.spacer { flex: 1; }
+.new {
+  background: transparent; color: #fff; border: 1px solid rgba(255, 255, 255, 0.6);
+  border-radius: 6px; padding: 3px 8px; font-size: 12px;
+}
+.icon-btn {
+  width: 30px; height: 30px; border: 0; border-radius: 6px;
+  background: transparent; color: #fff; font-size: 20px; line-height: 1;
+}
+.icon-btn:hover, .new:not(:disabled):hover { background: rgba(255, 255, 255, 0.18); }
+
+.messages {
+  flex: 1; overflow-y: auto; padding: 12px;
+  display: flex; flex-direction: column; gap: 10px;
+}
+.bubble {
+  max-width: 85%; padding: 8px 12px; border-radius: 12px;
+  white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.45;
+}
+.bot { align-self: flex-start; background: #eaf3fb; color: #0b3a5a; border-bottom-left-radius: 4px; }
+.me { align-self: flex-end; background: #0b4a72; color: #fff; border-bottom-right-radius: 4px; }
+
+.chips-title { margin: 6px 0 0; font-weight: 700; }
+.chip {
+  width: 100%; text-align: left; padding: 9px 12px;
+  background: #f4f6f8; color: #0b3a5a;
+  border: 1px solid #e5e7eb; border-radius: 8px;
+}
+.chip:hover { background: #e6eef5; }
+
+.typing { display: inline-flex; gap: 4px; align-items: center; height: 16px; }
+.typing i {
+  width: 6px; height: 6px; border-radius: 50%; background: #0b4a72;
+  animation: blink 1.2s infinite ease-in-out;
+}
+.typing i:nth-child(2) { animation-delay: 0.2s; }
+.typing i:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
+
+.error {
+  margin: 0 12px 8px; padding: 8px 10px; font-size: 13px;
+  background: #fdecea; color: #8a1c13;
+  border: 1px solid #f5c2bd; border-radius: 8px;
+}
+
+.sources {
+  margin-top: 8px; padding-top: 6px; white-space: normal;
+  border-top: 1px solid rgba(11, 58, 90, 0.2); font-size: 12.5px;
+}
+.sources-title { font-weight: 700; margin-bottom: 2px; }
+.sources ol { margin: 0; padding-left: 18px; }
+.sources li { margin: 2px 0; }
+.sources a { color: #0b4a72; text-decoration: underline; }
+.sources .host { display: block; color: #4b5563; font-size: 11.5px; }
+.sources ul { margin: 0; padding-left: 18px; }
+
+.web-toggle {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 12px 0; border-top: 1px solid #e5e7eb;
+  font-size: 12.5px; color: #374151; cursor: pointer;
+}
+.web-toggle input[type='checkbox'] { flex: none; width: 16px; height: 16px; padding: 0; margin: 0; }
+.web-toggle + .web-toggle { border-top: 0; padding-top: 2px; }
+
+form { display: flex; gap: 8px; padding: 10px 12px; border-top: 1px solid #e5e7eb; }
+.web-toggle + form { border-top: 0; padding-top: 6px; }
+input {
+  flex: 1; min-width: 0; padding: 10px 12px; font: inherit;
+  border: 1px solid #cbd5e1; border-radius: 8px;
+}
+input:focus-visible { outline: 2px solid #0b4a72; outline-offset: 1px; }
+.send {
+  width: 44px; display: grid; place-items: center;
+  background: #0b4a72; color: #fff; border: 0; border-radius: 8px;
+}
+
+@media (max-width: 480px) {
+  .panel { right: 0; bottom: 0; width: 100vw; height: 100dvh; border-radius: 0; border-width: 0; }
+}
