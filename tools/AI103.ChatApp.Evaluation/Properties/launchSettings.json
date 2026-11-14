@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Run Full Comparison (Standard vs FileSearch)": {
+      "commandName": "Project",
+      "commandLineArgs": "all"
+    },
+    "Evaluate File Search (RAG) Only": {
+      "commandName": "Project",
+      "commandLineArgs": "file-search"
+    },
+    "Evaluate Standard Chat Only": {
+      "commandName": "Project",
+      "commandLineArgs": "standard"
+    }
+  }
+}

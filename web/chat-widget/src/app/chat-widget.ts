@@ -39,11 +39,11 @@ export class ChatWidget {
   readonly apiBaseUrl = input('');
 
   protected readonly suggestions = [
-    'How to create an API subscription?',
-    'How to generate and use a subscription key?',
-    'OAuth token generation and security?',
+    'How to generate an access token?',
+    'How to create an invoice?',
     'Explain the RequestToPay API flow?',
-    'Why am I getting HTTP 403/404?',
+    'Explain callback configuration?',
+    'Why am I getting HTTP 401/403?',
   ];
 
   protected readonly open = signal(false);

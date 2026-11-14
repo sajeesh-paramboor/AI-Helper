@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "1. Create Vector Store": {
+      "commandName": "Project",
+      "commandLineArgs": "create ai103-study-docs"
+    },
+    "2. Upload Implementation Guide": {
+      "commandName": "Project",
+      "commandLineArgs": "upload vs_5YJ78qEFCP10CHZ4M4gwSqup \"C:\\Repo\\Study\\AI103\\ChatApp\\docs\\MTN_Sandbox_API_Complete_Guide.md\""
+    },
+    "3. Check Store Status": {
+      "commandName": "Project",
+      "commandLineArgs": "status vs_5YJ78qEFCP10CHZ4M4gwSqup"
+    },
+    "4. List Vector Stores": {
+      "commandName": "Project",
+      "commandLineArgs": "list"
+    }
+  }
+}

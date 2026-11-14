@@ -1,14 +1,14 @@
 @if (!open()) {
-  <button class="launcher" type="button" aria-label="Open the MoMo Developer Assistant" (click)="open.set(true)">
+  <button class="launcher" type="button" aria-label="Open the MTN Sandbox Developer Assistant" (click)="open.set(true)">
     <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
       <path d="M4 3h16a2 2 0 0 1 2 2v11a2 2 0 0 1-2 2H9l-5 4v-4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" />
     </svg>
   </button>
 } @else {
-  <section class="panel" role="dialog" aria-label="MoMo Developer Assistant">
+  <section class="panel" role="dialog" aria-label="MTN Sandbox Developer Assistant">
     <header>
       <span class="avatar" aria-hidden="true">AI</span>
-      <strong>MoMo Developer Assistant</strong>
+      <strong>MTN Sandbox Developer Assistant</strong>
       <span class="beta">Beta</span>
       <span class="spacer"></span>
       <button class="new" type="button" (click)="newConversation()" [disabled]="messages().length === 0">New chat</button>
@@ -17,7 +17,7 @@
     </header>
 
     <div class="messages" #list aria-live="polite">
-      <div class="bubble bot">Hi! I can help you integrate with MoMo APIs.</div>
+      <div class="bubble bot">Hi! I can help you integrate with MTN Sandbox APIs.</div>
 
       @if (messages().length === 0) {
         <p class="chips-title">You can ask me about:</p>
