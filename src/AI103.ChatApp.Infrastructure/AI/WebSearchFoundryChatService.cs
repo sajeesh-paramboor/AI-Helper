@@ -77,6 +77,8 @@ public sealed class WebSearchFoundryChatService(
         // yield is not allowed inside try/catch, so errors are surfaced by advancing the enumerator manually.
         await using var streamLifetime = stream;
         await using var enumerator = ((IAsyncEnumerable<StreamingResponseUpdate>)stream).GetAsyncEnumerator(cancellationToken);
+        var textStreamed = false;
+        var refusalDeltaSeen = false;
         while (true)
         {
             try
@@ -94,7 +96,25 @@ public sealed class WebSearchFoundryChatService(
             switch (enumerator.Current)
             {
                 case StreamingResponseOutputTextDeltaUpdate delta:
+                    textStreamed |= !string.IsNullOrWhiteSpace(delta.Delta);
                     yield return WebSearchStreamUpdate.Delta(delta.Delta);
+                    break;
+
+                case StreamingResponseRefusalDeltaUpdate refusalDelta:
+                    // A refusal is a separate content kind. It is shown to the user like normal text.
+                    refusalDeltaSeen = true;
+                    textStreamed |= !string.IsNullOrWhiteSpace(refusalDelta.Delta);
+                    yield return WebSearchStreamUpdate.Delta(refusalDelta.Delta);
+                    break;
+
+                case StreamingResponseRefusalDoneUpdate refusalDone:
+                    // The deltas already carried this text. Use the final text only if no delta arrived.
+                    if (!refusalDeltaSeen && !string.IsNullOrWhiteSpace(refusalDone.Refusal))
+                    {
+                        textStreamed = true;
+                        yield return WebSearchStreamUpdate.Delta(refusalDone.Refusal);
+                    }
+
                     break;
 
                 case StreamingResponseCompletedUpdate completed:
@@ -102,7 +122,7 @@ public sealed class WebSearchFoundryChatService(
                     yield break;
 
                 case StreamingResponseIncompleteUpdate incomplete:
-                    HandleIncomplete(incomplete.Response);
+                    HandleIncomplete(incomplete.Response, textStreamed);
                     yield return CompleteUpdate(incomplete.Response);
                     yield break;
 
@@ -127,13 +147,22 @@ public sealed class WebSearchFoundryChatService(
         return WebSearchStreamUpdate.Complete(response.Id, sources);
     }
 
-    private void HandleIncomplete(ResponseResult response)
+    // A content-filter stop is not an error when the user already received text (typically the safety refusal).
+    // It is an error only when no text was produced, so an empty answer is never reported as a success.
+    private void HandleIncomplete(ResponseResult response, bool hasText)
     {
         var reason = response.IncompleteStatusDetails?.Reason;
         logger.LogWarning("Response incomplete. ResponseId={ResponseId}, Reason={Reason}", response.Id, reason);
         if (reason == ResponseIncompleteStatusReason.ContentFilter)
         {
-            throw new ChatServiceException("The response was stopped by the content filter.");
+            if (!hasText)
+            {
+                throw new ChatServiceException("The response was stopped by the content filter.");
+            }
+
+            logger.LogWarning(
+                "Content filter stopped the response after text was produced; treating the turn as completed. ResponseId={ResponseId}",
+                response.Id);
         }
     }
 
@@ -163,13 +192,20 @@ public sealed class WebSearchFoundryChatService(
                     $"The model did not complete the response (status: {response.Status}). {response.Error?.Message}");
             }
 
-            if (response.Status is ResponseStatus.Incomplete)
+            var extracted = CitationExtractor.Extract(response.OutputItems);
+            var answer = extracted.Answer;
+            if (string.IsNullOrWhiteSpace(answer))
             {
-                HandleIncomplete(response);
+                // A refusal is its own content kind and is not part of the plain output text.
+                answer = RefusalText.Extract(response.OutputItems);
             }
 
-            var extracted = CitationExtractor.Extract(response.OutputItems);
-            if (response.Status is ResponseStatus.Incomplete && string.IsNullOrWhiteSpace(extracted.Answer))
+            if (response.Status is ResponseStatus.Incomplete)
+            {
+                HandleIncomplete(response, hasText: !string.IsNullOrWhiteSpace(answer));
+            }
+
+            if (response.Status is ResponseStatus.Incomplete && string.IsNullOrWhiteSpace(answer))
             {
                 throw new ChatServiceException("The model stopped before producing an answer.");
             }
@@ -179,7 +215,7 @@ public sealed class WebSearchFoundryChatService(
                 "Web search turn succeeded. ResponseId={ResponseId}, SearchCalls={SearchCalls}, Sources={Sources}",
                 response.Id, searchCalls, extracted.Sources.Count);
 
-            return new WebSearchChatResult(extracted.Answer, response.Id, extracted.Sources);
+            return new WebSearchChatResult(answer, response.Id, extracted.Sources);
         }
         catch (Exception ex) when (ex is not OperationCanceledException and not ChatServiceException)
         {

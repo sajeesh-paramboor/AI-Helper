@@ -102,21 +102,15 @@ Read from `azure-api-management-widget-cw-callback-url-configuration/`:
 | Backend call | `fetch` to an APIM gateway URL with the header `Ocp-Apim-Subscription-Key` | Not used yet (see section 7) |
 | Hosting | Loaded by the portal in an iframe | See the layout caveat in section 8 |
 
-## 5. Making the Angular widget portal-ready (to do)
+## 5. Making the Angular widget portal-ready (Completed)
 
-These steps are not done yet:
+The steps to make the Angular widget portal-ready have been successfully implemented:
 
-1. **Configurable API address.** The widget reads `apiBaseUrl` from an element attribute. Inside the portal, the
-   address should come from the editor values (`getValues(valuesDefault)` reading the `editorData` URL
-   parameter). Add `@azure/api-management-custom-widgets-tools` to `web/chat-widget`, read the value in
-   `main.ts`, and set it on the element.
-2. **Editor page.** Add an `editor.html` with an input for the API base URL, wired to `buildOnChange`, as in the
-   reference. **(not verified)** whether the portal requires an editor page; the reference has one.
-3. **Widget config.** Add `static/config.msapim.json` (copy the reference and change `name` and `displayName`).
-4. **Deploy script.** Add `deploy.js` modelled on the reference.
-5. **Build output.** Run `npm run build:portal`. It produces `dist/portal/browser/index.html` with relative asset
-   paths (`<base href="./">`), which is what a blob-storage host needs. The reference's `rootLocal` default is
-   `./dist/`, so pass `rootLocal: "./dist/portal/browser/"` in the `config` object of `deployNodeJS`.
+1. **Configurable API address:** Updated [`web/chat-widget/src/main.ts`](../web/chat-widget/src/main.ts) to call the `@azure/api-management-custom-widgets-tools`'s `getValues` function. It reads the `apiBaseUrl` from the APIM editor properties and applies it as an attribute (`api-base-url`) to the `<momo-chat-widget>` element dynamically on the host page.
+2. **Editor page:** Created [`web/chat-widget/public/editor.html`](../web/chat-widget/public/editor.html), an HTML template representing the APIM portal administrative editor panel. It contains a form field to input the `apiBaseUrl` and triggers the `buildOnChange` SDK hook to save properties.
+3. **Widget config:** Created [`web/chat-widget/public/config.msapim.json`](../web/chat-widget/public/config.msapim.json) with custom widget metadata naming our component `momo-chat-assistant` and defining its technology as `angular`.
+4. **Deploy script:** Added [`web/chat-widget/deploy.js`](../web/chat-widget/deploy.js) to compile and upload static assets from the compiled path to APIM custom widget blob hosting via standard interactive Azure CLI/browser login.
+5. **Build output:** The Angular build command `npm run build:portal` has been verified to output index, asset, and script files to `dist/portal/browser` with relative paths (`<base href="./">`), which matches our configured `rootLocal` setting in the deploy script.
 
 ## 6. Deployment sequence (when ready)
 

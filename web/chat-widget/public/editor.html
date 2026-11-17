@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MoMo Chat Assistant – Editor</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      font-size: 14px;
+      color: #333;
+      margin: 10px;
+      background-color: transparent;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    .form-label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 5px;
+    }
+    .form-control {
+      width: 100%;
+      box-sizing: border-box;
+      padding: 8px 12px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .form-control:focus {
+      border-color: #0078d4;
+      outline: none;
+    }
+  </style>
+  <script type="module">
+    import { buildOnChange, getEditorValues } from "https://cdn.jsdelivr.net/npm/@azure/api-management-custom-widgets-tools@1.0.0-beta.2/dist/index.js";
+
+    const onChange = buildOnChange();
+    window.onChange = onChange;
+
+    const values = getEditorValues();
+    const input = document.getElementById("apiBaseUrl");
+    if (values && values.apiBaseUrl) {
+      input.value = values.apiBaseUrl;
+    }
+
+    input.addEventListener("input", (e) => {
+      onChange({ apiBaseUrl: e.target.value });
+    });
+  </script>
+</head>
+<body>
+  <div class="form-group">
+    <label class="form-label" for="apiBaseUrl">Chat API Base URL</label>
+    <input id="apiBaseUrl" class="form-control" type="text" placeholder="https://api.example.com" />
+  </div>
+</body>
+</html>

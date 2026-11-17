@@ -2,6 +2,7 @@ import {
   afterRenderEffect,
   ChangeDetectionStrategy,
   Component,
+  effect,
   ElementRef,
   inject,
   input,
@@ -69,6 +70,56 @@ export class ChatWidget {
       const el = this.list()?.nativeElement;
       if (el) el.scrollTop = el.scrollHeight;
     });
+
+    // Dynamically adjust parent APIM iframe styles based on open/closed state
+    effect(() => {
+      const isOpen = this.open();
+      this.updateParentIframeStyle(isOpen);
+    });
+  }
+
+  private updateParentIframeStyle(isOpen: boolean): void {
+    try {
+      const iframe = window.frameElement as HTMLIFrameElement;
+      if (iframe) {
+        // Position the APIM portal iframe fixed in the bottom-right of the user's browser viewport
+        iframe.style.position = 'fixed';
+        iframe.style.bottom = '20px';
+        iframe.style.right = '20px';
+        iframe.style.border = 'none';
+        iframe.style.background = 'transparent';
+        iframe.style.zIndex = '2147483000';
+        
+        // Add a smooth transition for open/close actions
+        iframe.style.transition = 'width 0.2s cubic-bezier(0.4, 0, 0.2, 1), height 0.2s cubic-bezier(0.4, 0, 0.2, 1)';
+
+        if (isOpen) {
+          iframe.style.width = '400px';
+          iframe.style.height = '680px';
+        } else {
+          iframe.style.width = '80px';
+          iframe.style.height = '80px';
+        }
+
+        // Collapse all APIM-generated parent wrapper containers up to 3 levels to consume ZERO layout space
+        let currentParent = iframe.parentElement;
+        for (let i = 0; i < 3; i++) {
+          if (!currentParent || currentParent.tagName === 'BODY' || currentParent.tagName === 'HTML') {
+            break;
+          }
+          currentParent.style.height = '0px';
+          currentParent.style.minHeight = '0px';
+          currentParent.style.maxHeight = '0px';
+          currentParent.style.margin = '0px';
+          currentParent.style.padding = '0px';
+          currentParent.style.border = 'none';
+          currentParent.style.overflow = 'visible'; // Ensure the fixed-positioned iframe remains visible
+          currentParent = currentParent.parentElement;
+        }
+      }
+    } catch (e) {
+      console.warn('Cannot access parent iframe due to cross-origin restriction or environment.', e);
+    }
   }
 
   protected onInput(event: Event): void {

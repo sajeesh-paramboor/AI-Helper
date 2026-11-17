@@ -8,7 +8,7 @@ button { font: inherit; cursor: pointer; }
 button:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .launcher {
-  position: fixed; right: 24px; bottom: 24px; z-index: 2147483000;
+  position: absolute; right: 5px; bottom: 5px; z-index: 2147483000;
   width: 60px; height: 60px; border-radius: 50%;
   display: grid; place-items: center;
   background: #0b4a72; color: #fff; border: 3px solid #ffc82e;
@@ -16,7 +16,7 @@ button:disabled { opacity: 0.5; cursor: not-allowed; }
 }
 
 .panel {
-  position: fixed; right: 24px; bottom: 24px; z-index: 2147483000;
+  position: absolute; right: 5px; bottom: 5px; z-index: 2147483000;
   width: 380px; height: min(640px, calc(100vh - 48px));
   display: flex; flex-direction: column; overflow: hidden;
   background: #fff; border: 2px solid #ffc82e; border-radius: 14px;

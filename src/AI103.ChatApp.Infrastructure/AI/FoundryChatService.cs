@@ -59,9 +59,15 @@ public sealed class FoundryChatService : IChatService
             }
 
             var answer = response.GetOutputText();
+            if (string.IsNullOrWhiteSpace(answer))
+            {
+                // A refusal is its own content kind and is not part of the plain output text.
+                answer = RefusalText.Extract(response.OutputItems);
+            }
+
             if (response.Status is ResponseStatus.Incomplete)
             {
-                HandleIncomplete(response);
+                HandleIncomplete(response, hasText: !string.IsNullOrWhiteSpace(answer));
                 if (string.IsNullOrWhiteSpace(answer))
                 {
                     // e.g. a reasoning model used the whole token budget before producing visible text.
@@ -104,6 +110,8 @@ public sealed class FoundryChatService : IChatService
         // AsyncStreamingResult<T> implements IAsyncEnumerable<T> explicitly, hence the cast.
         await using var streamLifetime = stream;
         await using var enumerator = ((IAsyncEnumerable<StreamingResponseUpdate>)stream).GetAsyncEnumerator(cancellationToken);
+        var textStreamed = false;
+        var refusalDeltaSeen = false;
         while (true)
         {
             try
@@ -121,7 +129,25 @@ public sealed class FoundryChatService : IChatService
             switch (enumerator.Current)
             {
                 case StreamingResponseOutputTextDeltaUpdate delta:
+                    textStreamed |= !string.IsNullOrWhiteSpace(delta.Delta);
                     yield return ChatStreamUpdate.Delta(delta.Delta);
+                    break;
+
+                case StreamingResponseRefusalDeltaUpdate refusalDelta:
+                    // A refusal is a separate content kind. It is shown to the user like normal text.
+                    refusalDeltaSeen = true;
+                    textStreamed |= !string.IsNullOrWhiteSpace(refusalDelta.Delta);
+                    yield return ChatStreamUpdate.Delta(refusalDelta.Delta);
+                    break;
+
+                case StreamingResponseRefusalDoneUpdate refusalDone:
+                    // The deltas already carried this text. Use the final text only if no delta arrived.
+                    if (!refusalDeltaSeen && !string.IsNullOrWhiteSpace(refusalDone.Refusal))
+                    {
+                        textStreamed = true;
+                        yield return ChatStreamUpdate.Delta(refusalDone.Refusal);
+                    }
+
                     break;
 
                 case StreamingResponseCompletedUpdate completed:
@@ -133,7 +159,7 @@ public sealed class FoundryChatService : IChatService
                 case StreamingResponseIncompleteUpdate incomplete:
                     // Stopped early (for example the output-token limit). Keep what was generated.
                     LogUsage(incomplete.Response);
-                    HandleIncomplete(incomplete.Response);
+                    HandleIncomplete(incomplete.Response, textStreamed);
                     yield return ChatStreamUpdate.Complete(incomplete.Response.Id);
                     yield break;
 
@@ -170,17 +196,26 @@ public sealed class FoundryChatService : IChatService
     }
 
     /// <summary>
-    /// Logs why a response stopped early. A content-filter stop is an error; hitting the output-token
-    /// limit is not, because the partial answer is still usable.
+    /// Logs why a response stopped early. Hitting the output-token limit is not an error, because the partial
+    /// answer is still usable. A content-filter stop is not an error either when the user already received text
+    /// (typically the safety refusal); it is an error only when no text was produced, so an empty answer is
+    /// never reported as a success.
     /// </summary>
-    private void HandleIncomplete(ResponseResult response)
+    private void HandleIncomplete(ResponseResult response, bool hasText)
     {
         var reason = response.IncompleteStatusDetails?.Reason;
         _logger.LogWarning("Response incomplete. ResponseId={ResponseId}, Reason={Reason}", response.Id, reason);
 
         if (reason == ResponseIncompleteStatusReason.ContentFilter)
         {
-            throw new ChatServiceException("The response was stopped by the content filter.");
+            if (!hasText)
+            {
+                throw new ChatServiceException("The response was stopped by the content filter.");
+            }
+
+            _logger.LogWarning(
+                "Content filter stopped the response after text was produced; treating the turn as completed. ResponseId={ResponseId}",
+                response.Id);
         }
     }
 
